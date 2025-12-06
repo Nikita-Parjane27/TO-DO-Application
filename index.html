@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Todo App</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .btn:hover {
+            background: #3579c4;
+        }
+
+        .todo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .todo-title {
+            flex: 1;
+            margin-left: 10px;
+        }
+
+        .completed .todo-title {
+            text-decoration: line-through;
+            color: grey;
+        }
+
+        .todo-actions button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-complete {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #e53935;
+            color: white;
+        }
+
+        .loading,
+        .empty-msg {
+            text-align: center;
+            padding: 20px;
+            color: grey;
+        }
+
+        #todoCount {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Simple Todo App</h1>
+
+        <button class="btn" onclick="fetchAndStoreTodos()">Fetch & Load Todos</button>
+
+        <div id="todoCount"></div>
+        <div id="todoList"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://jsonplaceholder.typicode.com/todos';
+        const STORAGE_KEY = 'todos';
+
+        async function fetchAndStoreTodos() {
+            showLoading();
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                const first20 = data.slice(0, 20);
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(first20));
+                renderTodos();
+            } catch (err) {
+                alert("Error loading todos");
+            }
+        }
+
+        function getTodos() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        }
+
+        function saveTodos(todos) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+        }
+
+        function renderTodos() {
+            const todos = getTodos();
+            const list = document.getElementById("todoList");
+            const count = document.getElementById("todoCount");
+
+            count.textContent = `Total Todos: ${todos.length}`;
+
+            if (todos.length === 0) {
+                list.innerHTML = `<p class="empty-msg">No todos available</p>`;
+                return;
+            }
+
+            list.innerHTML = todos.map((todo, index) => `
+                <div class="todo-item ${todo.completed ? 'completed' : ''}">
+                    <input type="checkbox" 
+                        ${todo.completed ? "checked" : ""} 
+                        onchange="toggleComplete(${index})">
+
+                    <div class="todo-title">${todo.title}</div>
+
+                    <div class="todo-actions">
+                        <button class="btn-complete" onclick="toggleComplete(${index})">
+                            ✔
+                        </button>
+                        <button class="btn-delete" onclick="deleteTodo(${index})">
+                            🗑
+                        </button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function toggleComplete(index) {
+            const todos = getTodos();
+            todos[index].completed = !todos[index].completed;
+            saveTodos(todos);
+            renderTodos();
+        }
+
+        function deleteTodo(index) {
+            const todos = getTodos();
+            todos.splice(index, 1);
+            saveTodos(todos);
+            renderTodos();
+        }
+
+        function showLoading() {
+            document.getElementById("todoList").innerHTML =
+                `<p class="loading">Loading...</p>`;
+        }
+
+        window.onload = () => {
+            if (getTodos().length > 0) renderTodos();
+        };
+    </script>
+
+</body>
+</html>
