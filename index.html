@@ -152,10 +152,10 @@
 
                     <div class="todo-actions">
                         <button class="btn-complete" onclick="toggleComplete(${index})">
-                            ✔
+                           ${todo.completed ? 'Undo' : 'Complete'}
                         </button>
                         <button class="btn-delete" onclick="deleteTodo(${index})">
-                            🗑
+                             Delete
                         </button>
                     </div>
                 </div>
